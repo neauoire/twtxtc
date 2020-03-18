@@ -1,0 +1,3 @@
+/home/derulin/Downloads/twtxtc/twtxtc/CMakeFiles/rebuild_cache.dir
+/home/derulin/Downloads/twtxtc/twtxtc/CMakeFiles/twtxtc.dir
+/home/derulin/Downloads/twtxtc/twtxtc/CMakeFiles/edit_cache.dir

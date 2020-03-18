@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG   CMakeFiles/twtxtc.dir/cJSON/cJSON.c.o CMakeFiles/twtxtc.dir/cJSON/cJSON_Utils.c.o CMakeFiles/twtxtc.dir/twtxt.c.o  -o twtxtc 
