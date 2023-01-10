@@ -9,6 +9,7 @@
  * terms of the MIT License.
  */
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -131,10 +132,65 @@ int main(int argc, char *argv[]) {
         timebuf[24] = '0';
         timebuf[sizeof(timebuf)-1] = '\0'; /* Terminate! */
 
-        /* Build the new line and write it into the file: */
+        /* Write timestamp to file: */
         fputs(timebuf, twtxtfile);
         putc('\t', twtxtfile);
-        fputs(text, twtxtfile);
+
+        /* Write text with mentions to file: */
+        const char *prev_mention = text;
+        for (;;) {
+            /* Get mention opener. */
+            const char *mention = strchr(prev_mention, '@');
+            if (mention == NULL)
+                break;
+            /* Skip '@' */
+            mention += 1;
+
+            /* Find mention length. */
+            size_t mention_len = 0;
+            while (mention[mention_len] != '\0' && isalnum(mention[mention_len]))
+                mention_len += 1;
+            /* Empty mention, display everything up to '@' and continue. */
+            if (mention_len == 0) {
+                fwrite(prev_mention, mention - prev_mention, 1, twtxtfile);
+                prev_mention = mention;
+                continue;
+            }
+
+            /* Write everything preceding mention. */
+            fwrite(prev_mention, mention - prev_mention - 1, 1, twtxtfile);
+
+            /* Try to match nick to URL using the .following array. */
+            int found_url = 0;
+            cJSON *following= cJSON_Parse(getConfigValue("following", NULL));
+            if (following != NULL) {
+                for (cJSON *pair = following->child; pair != NULL; pair = pair->next) {
+                    const char *name = pair->string;
+                    const char *url = pair->valuestring;
+                    if (strlen(name) == mention_len &&
+                        strncmp(pair->string, mention, mention_len) == 0)
+                    {
+                        /* Found URL, write formatted mention. */
+                        found_url = 1;
+                        fprintf(twtxtfile, "@<%s %s>", name, url);
+                        break;
+                    }
+                }
+                cJSON_Delete(following);
+            }
+
+            /* Didn't find matching URL, write '@' and continue. */
+            if (!found_url) {
+                putc('@', twtxtfile);
+                prev_mention = mention;
+                continue;
+            }
+
+            /* Skip processed mention. */
+            prev_mention = mention + mention_len;
+        }
+        fputs(prev_mention, twtxtfile);
+        putc('\n', twtxtfile);
 
         /* Done. */
         fclose(twtxtfile);
