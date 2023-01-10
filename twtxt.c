@@ -132,7 +132,9 @@ int main(int argc, char *argv[]) {
         timebuf[sizeof(timebuf)-1] = '\0'; /* Terminate! */
 
         /* Build the new line and write it into the file: */
-        fprintf(twtxtfile, "%s\t%s\n", timebuf, text);
+        fputs(timebuf, twtxtfile);
+        putc('\t', twtxtfile);
+        fputs(text, twtxtfile);
 
         /* Done. */
         fclose(twtxtfile);
